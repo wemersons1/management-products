@@ -1,5 +1,3 @@
-# Adoorei Teste
-
 ## Como instalar
 
 Softwares obrigatórios:
