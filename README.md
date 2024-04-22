@@ -1,4 +1,4 @@
-## Yii framework
+## Yii Framework
 
 ## Como instalar
 
