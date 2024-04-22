@@ -17,9 +17,11 @@ class m240416_011343_create_products_table extends Migration
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'price' => $this->decimal(8, 2)->notNull(),
-            'image' => $this->text()->notNull(),
+            'image' => $this->text()->null(),
             'client_id' => $this->integer()->notNull(),
         ]);
+
+        $this->addForeignKey('fk_product_client', '{{%products}}', 'client_id', '{{%clients}}', 'id');
     }
 
     /**
@@ -27,6 +29,8 @@ class m240416_011343_create_products_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropForeignKey('fk_product_client', '{{%products}}');
+
         $this->dropTable('{{%products}}');
     }
 }

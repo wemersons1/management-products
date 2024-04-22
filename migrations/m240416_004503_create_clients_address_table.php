@@ -32,6 +32,8 @@ class m240416_004503_create_clients_address_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropForeignKey('fk_clients_address_state', '{{%states}}');
+        $this->dropForeignKey('fk_clients_address_city', '{{%cities}}');
         $this->dropTable('{{%clients_address}}');
     }
 }

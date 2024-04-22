@@ -17,7 +17,7 @@ class m240416_011030_create_clients_table extends Migration
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'document' => $this->string()->notNull(),
-            'image' => $this->text()->notNull(),
+            'image' => $this->text()->null(),
             'gender_id' => $this->tinyInteger()->notNull(),
             'address_id' => $this->integer()->null(),
         ]);
@@ -31,6 +31,9 @@ class m240416_011030_create_clients_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropForeignKey('fk_clients_genders', '{{%genders}}');
+        $this->dropForeignKey('fk_clients_clients_address', '{{%clients_address}}');
+
         $this->dropTable('{{%clients}}');
     }
 }

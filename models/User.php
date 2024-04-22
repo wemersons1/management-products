@@ -2,103 +2,102 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
-{
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
+use yii\web\IdentityInterface;
+use Yii;
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
-
+/**
+ * This is the model class for table "users".
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $login
+ * @property string $password
+ */
+class User extends \yii\db\ActiveRecord implements IdentityInterface{
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'users';
+    }
 
     /**
      * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['name', 'login', 'password'], 'required'],
+            [['name', 'login', 'password'], 'string', 'max' => 255],
+            [['login'], 'unique'],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'name' => 'Name',
+            'login' => 'Login',
+            'password' => 'Password',
+        ];
+    }
+
+    /**
+     * Localiza uma identidade pelo ID informado
+     *
+     * @param string|int $id o ID a ser localizado
+     * @return IdentityInterface|null o objeto da identidade que corresponde ao ID informado
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return static::findOne($id);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function findIdentityByAccessToken($token, $type = null)
-    {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
+    public static function findIdentityByAccessToken($token, $type = null) {
+
+        $userId = null;
+        foreach((array) Yii::$app->jwt->loadToken($token)->claims() as $item) {
+            if(isset($item['uid'])) {
+                $userId = $item['uid'];
+                break;
             }
         }
-
-        return null;
+    
+        return static::find()
+            ->where(['id' => $userId ])
+            ->one();
     }
 
-    /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
-    {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
 
-        return null;
-    }
+    public function afterSave($isInsert, $changedOldAttributes) {
+		// Purge the user tokens when the password is changed
+		if (array_key_exists('usr_password', $changedOldAttributes)) {
+			\app\models\UserRefreshToken::deleteAll(['urf_userID' => $this->userID]);
+		}
 
-    /**
-     * {@inheritdoc}
-     */
+		return parent::afterSave($isInsert, $changedOldAttributes);
+	}
+
     public function getId()
     {
         return $this->id;
     }
-
     /**
-     * {@inheritdoc}
+     * @return string a chave de autenticação do usuário atual
      */
     public function getAuthKey()
     {
-        return $this->authKey;
+        return '';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function validateAuthKey($authKey)
     {
-        return $this->authKey === $authKey;
+        return $this->getAuthKey() === $authKey;
     }
 
-    /**
-     * Validates password
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
-     */
-    public function validatePassword($password)
-    {
-        return $this->password === $password;
-    }
 }

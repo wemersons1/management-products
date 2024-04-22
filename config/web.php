@@ -12,8 +12,14 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'jwt' => [
+            'class' => \kaabar\jwt\Jwt::class,
+            'key' => env('JWT_SECRET'),  //typically a long random string
+        ],
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ],
             'cookieValidationKey' => 'tDrSlz9EWfoQgesmDF2Fq2Y9oOBazoUd',
         ],
         'cache' => [
@@ -42,14 +48,31 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
-            ],
+                'POST sessions' => 'session/login',
+
+                'GET states' => 'state-controller',
+                'GET cities' => 'city-controller/list',
+                
+                'POST clients-address' => 'client-address/store',
+                'PUT clients-address/<id>' => 'client-address/edit',
+                'GET clients-address/<id>' => 'client-address/show',
+                
+                'POST clients' => 'client/store',
+                'GET clients' => 'client/list',
+                'PUT clients/<id>' => 'client/edit',
+                'GET clients/<id>' => 'client/show',
+
+                'POST products' => 'product/store',
+                'GET products' => 'product/list',
+                'PUT products/<id>' => 'product/edit',
+                'GET products/<id>' => 'product/show',
+            ]
         ],
-        */
     ],
     'params' => $params,
 ];
